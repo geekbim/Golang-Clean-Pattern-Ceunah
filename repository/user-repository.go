@@ -38,7 +38,13 @@ func (db *userConnection) InsertUser(user entity.User) entity.User {
 }
 
 func (db *userConnection) UpdateUser(user entity.User) entity.User {
-	user.Password = hashAndSalt([]byte(user.Password))
+	if user.Password != nil {
+		user.Password = hashAndSalt([]byte(user.Password))
+	} else {
+		var tempUser entity.User
+		db.connection.Find(&tempUser, user.ID)
+		user.Password = tempUser.Password
+	}
 
 	db.connection.Save(&user)
 
@@ -59,6 +65,7 @@ func (db *userConnection) VerifyCredential(email string, password string) interf
 
 func (db *userConnection) IsDuplicateEmail(email string) (tx *gorm.DB) {
 	var user entity.User
+
 	return db.connection.Where("email = ?", email).Take(&user)
 }
 
