@@ -24,7 +24,7 @@ type jwtService struct {
 	issuer    string
 }
 
-func newJWTService() JWTService {
+func NewJWTService() JWTService {
 	return &jwtService{
 		issuer:    "geekbim",
 		secretKey: getSecretKey(),

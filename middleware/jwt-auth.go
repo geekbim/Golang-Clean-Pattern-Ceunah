@@ -8,7 +8,6 @@ import (
 	"github.com/geekbim/Golang-Clean-Pattern-Ceunah/helper"
 	"github.com/geekbim/Golang-Clean-Pattern-Ceunah/service"
 	"github.com/gin-gonic/gin"
-	"github.com/go-delve/delve/service"
 )
 
 // AuthorizeJWT validates the token user given, return 401 if not valid

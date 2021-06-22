@@ -38,7 +38,7 @@ func (db *userConnection) InsertUser(user entity.User) entity.User {
 }
 
 func (db *userConnection) UpdateUser(user entity.User) entity.User {
-	if user.Password != nil {
+	if user.Password != "" {
 		user.Password = hashAndSalt([]byte(user.Password))
 	} else {
 		var tempUser entity.User
