@@ -51,4 +51,6 @@ func (db *bookConnection) FindBookByID(bookID uint64) entity.Book {
 func (db *bookConnection) AllBook() []entity.Book {
 	var books []entity.Book
 	db.connection.Preload("User").Find(&books)
+
+	return books
 }
