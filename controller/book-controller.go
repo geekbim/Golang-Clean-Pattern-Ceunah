@@ -49,7 +49,7 @@ func (c *bookController) FindByID(context *gin.Context) {
 		context.AbortWithStatusJSON(http.StatusBadRequest, res)
 	}
 
-	var book entity.Book = c.bookService.FindById(id)
+	var book entity.Book = c.bookService.FindByID(id)
 
 	if (book == entity.Book{}) {
 		res := helper.BuildErrorResponse("Data not found", "No data with given id", helper.EmptyObj{})
@@ -134,7 +134,7 @@ func (c *bookController) Delete(context *gin.Context) {
 		context.JSON(http.StatusBadRequest, res)
 	}
 
-	bookID.ID = id
+	book.ID = id
 	authHeader := context.GetHeader("Authorization")
 	token, errToken := c.jwtService.ValidateToken(authHeader)
 

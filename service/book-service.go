@@ -10,12 +10,13 @@ import (
 	"github.com/mashingan/smapping"
 )
 
+// BookService is a ....
 type BookService interface {
 	Insert(b dto.BookCreateDTO) entity.Book
-	Update(b dto.BookCreateDTO) entity.Book
+	Update(b dto.BookUpdateDTO) entity.Book
 	Delete(b entity.Book)
 	All() []entity.Book
-	FindById(bookID uint64) entity.Book
+	FindByID(bookID uint64) entity.Book
 	IsAllowedToEdit(userID string, bookID uint64) bool
 }
 
@@ -24,7 +25,7 @@ type bookService struct {
 }
 
 // NewBookService...
-func NewBookService(bookRepo repository.BookRepository) bookService {
+func NewBookService(bookRepo repository.BookRepository) BookService {
 	return &bookService{
 		bookRepository: bookRepo,
 	}
@@ -66,7 +67,7 @@ func (service *bookService) All() []entity.Book {
 	return service.bookRepository.AllBook()
 }
 
-func (service *bookService) FindById(bookID uint64) entity.Book {
+func (service *bookService) FindByID(bookID uint64) entity.Book {
 	return service.bookRepository.FindBookByID(bookID)
 }
 
