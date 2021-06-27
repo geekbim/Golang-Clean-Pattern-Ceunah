@@ -59,7 +59,7 @@ func (service *bookService) Update(b dto.BookUpdateDTO) entity.Book {
 }
 
 func (service *bookService) Delete(b entity.Book) {
-	service.bookRepository.DeleteBook((b))
+	service.bookRepository.DeleteBook(b)
 }
 
 func (service *bookService) All() []entity.Book {

@@ -56,7 +56,8 @@ func (j *jwtService) GenerateToken(UserID string) string {
 	t, err := token.SignedString([]byte(j.secretKey))
 
 	if err != nil {
-		panic(err)
+		// panic(err)
+		panic(err.Error())
 	}
 
 	return t
