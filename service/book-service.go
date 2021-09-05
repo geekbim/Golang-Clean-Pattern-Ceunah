@@ -15,9 +15,9 @@ type BookService interface {
 	All() []entity.Book
 	UserBook(userID string) []entity.Book
 	FindByID(bookID uint64) entity.Book
-	Insert(b dto.BookCreateDTO) entity.Book
-	Update(b dto.BookUpdateDTO) entity.Book
-	Delete(b entity.Book)
+	Insert(bookDto dto.BookCreateDTO) entity.Book
+	Update(bookDto dto.BookUpdateDTO) entity.Book
+	Delete(bookDto entity.Book)
 	IsAllowedToEdit(userID string, bookID uint64) bool
 }
 
@@ -49,6 +49,7 @@ func (service *bookService) Insert(bookDto dto.BookCreateDTO) entity.Book {
 
 	err := smapping.FillStruct(&book, smapping.MapFields(&bookDto))
 
+	fmt.Println(err)
 	if err != nil {
 		log.Fatalf("Failed map %v: ", err)
 	}

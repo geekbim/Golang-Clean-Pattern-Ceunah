@@ -56,7 +56,7 @@ func (db *userConnection) UpdateUser(user entity.User) entity.User {
 func (db *userConnection) VerifyCredential(email string, password string) interface{} {
 	var user entity.User
 
-	res := db.connection.Preload("Books").Where("email = ?", email).Take(&user)
+	res := db.connection.Preload("Books").Preload("Books.User").Where("email = ?", email).Take(&user)
 
 	if res.Error == nil {
 		return user

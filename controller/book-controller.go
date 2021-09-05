@@ -44,14 +44,8 @@ func (c *bookController) All(context *gin.Context) {
 
 func (c *bookController) UserBook(context *gin.Context) {
 	authHeader := context.GetHeader("Authorization")
-	token, err := c.jwtService.ValidateToken(authHeader)
-
-	if err != nil {
-		panic(err.Error())
-	}
-
-	claims := token.Claims.(jwt.MapClaims)
-	books := c.bookService.UserBook(fmt.Sprintf("%v", claims["user_id"]))
+	userID := c.getUserIDByToken(authHeader)
+	books := c.bookService.UserBook(fmt.Sprintf("%v", userID))
 	res := helper.BuildResponse(true, "Get user book successfully", books)
 	context.JSON(http.StatusOK, res)
 }
@@ -60,7 +54,7 @@ func (c *bookController) FindByID(context *gin.Context) {
 	id, err := strconv.ParseUint(context.Param("id"), 0, 0)
 
 	if err != nil {
-		res := helper.BuildErrorResponse("No param id was found", err.Error(), helper.EmptyObj{})
+		res := helper.BuildErrorResponse("Get book by id failed", err.Error(), helper.EmptyObj{})
 		context.AbortWithStatusJSON(http.StatusBadRequest, res)
 	}
 
@@ -70,7 +64,7 @@ func (c *bookController) FindByID(context *gin.Context) {
 		res := helper.BuildErrorResponse("Data not found", "No data with given id", helper.EmptyObj{})
 		context.JSON(http.StatusNotFound, res)
 	} else {
-		res := helper.BuildResponse(true, "success", book)
+		res := helper.BuildResponse(true, "Get book by id successfully", book)
 		context.JSON(http.StatusOK, res)
 	}
 }
@@ -81,7 +75,7 @@ func (c *bookController) Insert(context *gin.Context) {
 	errDTO := context.ShouldBind(&bookCreateDTO)
 
 	if errDTO != nil {
-		res := helper.BuildErrorResponse("Failed to process request", errDTO.Error(), helper.EmptyObj{})
+		res := helper.BuildErrorResponse("Create book failed", errDTO.Error(), helper.EmptyObj{})
 		context.JSON(http.StatusBadRequest, res)
 	} else {
 		authHeader := context.GetHeader("Authorization")
@@ -90,12 +84,12 @@ func (c *bookController) Insert(context *gin.Context) {
 
 		if err != nil {
 			panic(err.Error())
-		} else {
-			bookCreateDTO.UserID = convertedUserID
 		}
 
+		bookCreateDTO.UserID = convertedUserID
+
 		result := c.bookService.Insert(bookCreateDTO)
-		response := helper.BuildResponse(true, "success", result)
+		response := helper.BuildResponse(true, "Create book successfully", result)
 		context.JSON(http.StatusCreated, response)
 	}
 }
@@ -106,7 +100,7 @@ func (c *bookController) Update(context *gin.Context) {
 	errDTO := context.ShouldBind(&bookUpdateDTO)
 
 	if errDTO != nil {
-		res := helper.BuildErrorResponse("Failed to process request", errDTO.Error(), helper.EmptyObj{})
+		res := helper.BuildErrorResponse("Update book failed", errDTO.Error(), helper.EmptyObj{})
 		context.JSON(http.StatusBadRequest, res)
 		return
 	}
@@ -131,7 +125,7 @@ func (c *bookController) Update(context *gin.Context) {
 		}
 
 		result := c.bookService.Update(bookUpdateDTO)
-		response := helper.BuildResponse(true, "success", result)
+		response := helper.BuildResponse(true, "Update book successfully", result)
 		context.JSON(http.StatusOK, response)
 	} else {
 		response := helper.BuildErrorResponse("You don't have permission", "You are not owner", helper.EmptyObj{})
@@ -162,7 +156,7 @@ func (c *bookController) Delete(context *gin.Context) {
 
 	if c.bookService.IsAllowedToEdit(userID, book.ID) {
 		c.bookService.Delete(book)
-		res := helper.BuildResponse(true, "deleted", helper.EmptyObj{})
+		res := helper.BuildResponse(true, "Delete book successfully", helper.EmptyObj{})
 		context.JSON(http.StatusOK, res)
 	} else {
 		res := helper.BuildErrorResponse("You don't have permission", "You are not the owner", helper.EmptyObj{})
