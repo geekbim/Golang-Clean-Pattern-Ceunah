@@ -61,6 +61,7 @@ func (c *authController) Login(context *gin.Context) {
 func (c *authController) Register(context *gin.Context) {
 	var registerDTO dto.RegisterDTO
 
+	// validation form request
 	errDTO := context.ShouldBind(&registerDTO)
 
 	if errDTO != nil {
@@ -69,6 +70,7 @@ func (c *authController) Register(context *gin.Context) {
 		return
 	}
 
+	// check duplicate email
 	if !c.authService.IsDuplicateEmail(registerDTO.Email) {
 		response := helper.BuildErrorResponse("User register failed", "Duplicate email", helper.EmptyObj{})
 		context.JSON(http.StatusConflict, response)

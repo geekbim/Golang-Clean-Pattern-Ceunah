@@ -14,8 +14,8 @@ import (
 
 // UserController is a contract what this controller can do
 type UserController interface {
-	Update(context *gin.Context)
 	Profile(context *gin.Context)
+	Update(context *gin.Context)
 }
 
 type userController struct {
@@ -31,9 +31,51 @@ func NewUserController(userService service.UserService, jwtService service.JWTSe
 	}
 }
 
+// get user profile
+func (c *userController) Profile(context *gin.Context) {
+	// get user id from token
+	authHeader := context.GetHeader("Authorization")
+	token, err := c.jwtService.ValidateToken(authHeader)
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	claims := token.Claims.(jwt.MapClaims)
+	userID := fmt.Sprintf("%v", claims["user_id"])
+
+	// throw to service
+	user := c.userService.Profile(userID)
+
+	// response
+	res := helper.BuildResponse(true, "Get user profile successfully", user)
+	context.JSON(http.StatusOK, res)
+}
+
 func (c *userController) Update(context *gin.Context) {
 	var userUpdateDTO dto.UserUpdateDTO
+	var path string
 
+	// photo upload
+	file, err := context.FormFile("photo")
+
+	if file != nil {
+		if err != nil {
+			res := helper.BuildErrorResponse("Update user failed", err.Error(), helper.EmptyObj{})
+			context.AbortWithStatusJSON(http.StatusBadRequest, res)
+			return
+		}
+
+		// Set Folder untuk menyimpan filenya
+		path = "public/images/" + file.Filename
+		if err := context.SaveUploadedFile(file, path); err != nil {
+			res := helper.BuildErrorResponse("Update user failed", err.Error(), helper.EmptyObj{})
+			context.AbortWithStatusJSON(http.StatusBadRequest, res)
+			return
+		}
+	}
+
+	// validation form request
 	errDTO := context.ShouldBind(&userUpdateDTO)
 
 	if errDTO != nil {
@@ -42,6 +84,7 @@ func (c *userController) Update(context *gin.Context) {
 		return
 	}
 
+	// get token from user
 	authHeader := context.GetHeader("Authorization")
 	token, errToken := c.jwtService.ValidateToken(authHeader)
 
@@ -58,21 +101,10 @@ func (c *userController) Update(context *gin.Context) {
 
 	userUpdateDTO.ID = id
 
-	user := c.userService.Update(userUpdateDTO)
+	// throw to service
+	user := c.userService.Update(userUpdateDTO, path)
+
+	// response
 	res := helper.BuildResponse(true, "Update user successfully", user)
-	context.JSON(http.StatusOK, res)
-}
-
-func (c *userController) Profile(context *gin.Context) {
-	authHeader := context.GetHeader("Authorization")
-	token, err := c.jwtService.ValidateToken(authHeader)
-
-	if err != nil {
-		panic(err.Error())
-	}
-
-	claims := token.Claims.(jwt.MapClaims)
-	user := c.userService.Profile(fmt.Sprintf("%v", claims["user_id"]))
-	res := helper.BuildResponse(true, "Get user profile successfully", user)
 	context.JSON(http.StatusOK, res)
 }

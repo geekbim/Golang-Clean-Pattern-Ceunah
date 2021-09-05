@@ -26,6 +26,8 @@ var (
 func main() {
 	r := gin.Default()
 
+	r.MaxMultipartMemory = 8 << 20
+
 	authRoutes := r.Group("api/auth")
 	{
 		authRoutes.POST("/login", authController.Login)

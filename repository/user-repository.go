@@ -11,7 +11,7 @@ import (
 // UserRepository is a contract what UserRepository can do to db
 type UserRepository interface {
 	InsertUser(user entity.User) entity.User
-	UpdateUser(user entity.User) entity.User
+	UpdateUser(user entity.User, path string) entity.User
 	VerifyCredential(email string, password string) interface{}
 	IsDuplicateEmail(email string) (tx *gorm.DB)
 	FindByEmail(email string) entity.User
@@ -38,7 +38,7 @@ func (db *userConnection) InsertUser(user entity.User) entity.User {
 	return user
 }
 
-func (db *userConnection) UpdateUser(user entity.User) entity.User {
+func (db *userConnection) UpdateUser(user entity.User, path string) entity.User {
 	if user.Password != "" {
 		user.Password = hashAndSalt([]byte(user.Password))
 	} else {
@@ -47,8 +47,14 @@ func (db *userConnection) UpdateUser(user entity.User) entity.User {
 		user.Password = tempUser.Password
 	}
 
+	if path != "" {
+		var tempUser entity.User
+		db.connection.Find(&tempUser, user.ID)
+		user.Photo = path
+	}
+
 	db.connection.Save(&user)
-	db.connection.Preload("Books").Find(&user)
+	db.connection.Preload("Books").Preload("Books.User").Find(&user)
 
 	return user
 }

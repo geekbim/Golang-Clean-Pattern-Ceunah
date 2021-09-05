@@ -11,7 +11,7 @@ import (
 
 // UserService is a contract about something that this service can do
 type UserService interface {
-	Update(user dto.UserUpdateDTO) entity.User
+	Update(user dto.UserUpdateDTO, path string) entity.User
 	Profile(userID string) entity.User
 }
 
@@ -26,7 +26,7 @@ func NewUserService(userRepo repository.UserRepository) UserService {
 	}
 }
 
-func (service *userService) Update(user dto.UserUpdateDTO) entity.User {
+func (service *userService) Update(user dto.UserUpdateDTO, path string) entity.User {
 	userToUpdate := entity.User{}
 
 	err := smapping.FillStruct(&userToUpdate, smapping.MapFields(&user))
@@ -35,7 +35,7 @@ func (service *userService) Update(user dto.UserUpdateDTO) entity.User {
 		log.Fatalf("Failed map %v : ", err)
 	}
 
-	updatedUser := service.userRepository.UpdateUser(userToUpdate)
+	updatedUser := service.userRepository.UpdateUser(userToUpdate, path)
 
 	return updatedUser
 }
