@@ -12,7 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// UserController is a ....
+// UserController is a contract what this controller can do
 type UserController interface {
 	Update(context *gin.Context)
 	Profile(context *gin.Context)
@@ -37,7 +37,7 @@ func (c *userController) Update(context *gin.Context) {
 	errDTO := context.ShouldBind(&userUpdateDTO)
 
 	if errDTO != nil {
-		res := helper.BuildErrorResponse("Failed to process request", errDTO.Error(), helper.EmptyObj{})
+		res := helper.BuildErrorResponse("Update user failed", errDTO.Error(), helper.EmptyObj{})
 		context.AbortWithStatusJSON(http.StatusBadRequest, res)
 		return
 	}
@@ -58,8 +58,8 @@ func (c *userController) Update(context *gin.Context) {
 
 	userUpdateDTO.ID = id
 
-	u := c.userService.Update(userUpdateDTO)
-	res := helper.BuildResponse(true, "success", u)
+	user := c.userService.Update(userUpdateDTO)
+	res := helper.BuildResponse(true, "Update user successfully", user)
 	context.JSON(http.StatusOK, res)
 }
 
@@ -73,6 +73,6 @@ func (c *userController) Profile(context *gin.Context) {
 
 	claims := token.Claims.(jwt.MapClaims)
 	user := c.userService.Profile(fmt.Sprintf("%v", claims["user_id"]))
-	res := helper.BuildResponse(true, "success", user)
+	res := helper.BuildResponse(true, "Get user profile successfully", user)
 	context.JSON(http.StatusOK, res)
 }

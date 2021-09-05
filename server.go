@@ -28,21 +28,22 @@ func main() {
 
 	authRoutes := r.Group("api/auth")
 	{
-		authRoutes.POST("login", authController.Login)
-		authRoutes.POST("register", authController.Register)
+		authRoutes.POST("/login", authController.Login)
+		authRoutes.POST("/register", authController.Register)
 	}
 
 	userRoutes := r.Group("api/user", middleware.AuthorizeJWT(jwtService))
 	{
-		userRoutes.GET("profile", userController.Profile)
-		userRoutes.PUT("profile", userController.Update)
+		userRoutes.GET("/profile", userController.Profile)
+		userRoutes.PUT("/profile", userController.Update)
 	}
 
 	bookRoutes := r.Group("api/books", middleware.AuthorizeJWT(jwtService))
 	{
 		bookRoutes.GET("/", bookController.All)
-		bookRoutes.POST("/", bookController.Insert)
+		bookRoutes.GET("/user", bookController.UserBook)
 		bookRoutes.GET("/:id", bookController.FindByID)
+		bookRoutes.POST("/", bookController.Insert)
 		bookRoutes.PUT("/:id", bookController.Update)
 		bookRoutes.DELETE("/:id", bookController.Delete)
 	}

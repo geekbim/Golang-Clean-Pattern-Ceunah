@@ -10,13 +10,14 @@ import (
 	"github.com/mashingan/smapping"
 )
 
-// BookService is a ....
+// BookService is a contract about something that this service can do
 type BookService interface {
+	All() []entity.Book
+	UserBook(userID string) []entity.Book
+	FindByID(bookID uint64) entity.Book
 	Insert(b dto.BookCreateDTO) entity.Book
 	Update(b dto.BookUpdateDTO) entity.Book
 	Delete(b entity.Book)
-	All() []entity.Book
-	FindByID(bookID uint64) entity.Book
 	IsAllowedToEdit(userID string, bookID uint64) bool
 }
 
@@ -24,17 +25,29 @@ type bookService struct {
 	bookRepository repository.BookRepository
 }
 
-// NewBookService...
+// NewBookService creates a new instance of BookService
 func NewBookService(bookRepo repository.BookRepository) BookService {
 	return &bookService{
 		bookRepository: bookRepo,
 	}
 }
 
-func (service *bookService) Insert(b dto.BookCreateDTO) entity.Book {
+func (service *bookService) All() []entity.Book {
+	return service.bookRepository.AllBook()
+}
+
+func (service *bookService) UserBook(userID string) []entity.Book {
+	return service.bookRepository.UserBook(userID)
+}
+
+func (service *bookService) FindByID(bookID uint64) entity.Book {
+	return service.bookRepository.FindBookByID(bookID)
+}
+
+func (service *bookService) Insert(bookDto dto.BookCreateDTO) entity.Book {
 	book := entity.Book{}
 
-	err := smapping.FillStruct(&book, smapping.MapFields(&b))
+	err := smapping.FillStruct(&book, smapping.MapFields(&bookDto))
 
 	if err != nil {
 		log.Fatalf("Failed map %v: ", err)
@@ -45,10 +58,10 @@ func (service *bookService) Insert(b dto.BookCreateDTO) entity.Book {
 	return res
 }
 
-func (service *bookService) Update(b dto.BookUpdateDTO) entity.Book {
+func (service *bookService) Update(bookDto dto.BookUpdateDTO) entity.Book {
 	book := entity.Book{}
 
-	err := smapping.FillStruct(&book, smapping.MapFields(&b))
+	err := smapping.FillStruct(&book, smapping.MapFields(&bookDto))
 
 	if err != nil {
 		log.Fatalf("Failed map %v : ", err)
@@ -59,22 +72,14 @@ func (service *bookService) Update(b dto.BookUpdateDTO) entity.Book {
 	return res
 }
 
-func (service *bookService) Delete(b entity.Book) {
-	service.bookRepository.DeleteBook(b)
-}
-
-func (service *bookService) All() []entity.Book {
-	return service.bookRepository.AllBook()
-}
-
-func (service *bookService) FindByID(bookID uint64) entity.Book {
-	return service.bookRepository.FindBookByID(bookID)
+func (service *bookService) Delete(book entity.Book) {
+	service.bookRepository.DeleteBook(book)
 }
 
 func (service *bookService) IsAllowedToEdit(userID string, bookID uint64) bool {
-	b := service.bookRepository.FindBookByID(bookID)
+	book := service.bookRepository.FindBookByID(bookID)
 
-	id := fmt.Sprintf("%v", b.UserID)
+	id := fmt.Sprintf("%v", book.UserID)
 
 	return userID == id
 }

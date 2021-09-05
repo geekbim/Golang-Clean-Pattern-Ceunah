@@ -13,7 +13,6 @@ import (
 // AuthService is a contract about something that this service can do
 type AuthService interface {
 	VerifyCredential(email string, password string) interface{}
-	VerifyUser(email string) bool
 	CreateUser(user dto.RegisterDTO) entity.User
 	FindByEmail(email string) entity.User
 	IsDuplicateEmail(email string) bool
@@ -36,7 +35,7 @@ func (service *authService) VerifyCredential(email string, password string) inte
 	if v, ok := res.(entity.User); ok {
 		comparedPassword := comparePassword(v.Password, []byte(password))
 
-		if v.Email == email && comparedPassword && len(v.EmailVerified) >= 1 {
+		if v.Email == email && comparedPassword {
 			return res
 		}
 
@@ -44,12 +43,6 @@ func (service *authService) VerifyCredential(email string, password string) inte
 	}
 
 	return false
-}
-
-func (service *authService) VerifyUser(email string) bool {
-	res := service.userRepository.VerifyUser(email)
-
-	return !(res.Error == nil)
 }
 
 func (service *authService) CreateUser(user dto.RegisterDTO) entity.User {

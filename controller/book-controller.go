@@ -13,9 +13,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// BookController is a ....
+// BookController is a contract what this controller can do
 type BookController interface {
 	All(context *gin.Context)
+	UserBook(context *gin.Context)
 	FindByID(context *gin.Context)
 	Insert(context *gin.Context)
 	Update(context *gin.Context)
@@ -37,7 +38,21 @@ func NewBookController(bookService service.BookService, jwtService service.JWTSe
 
 func (c *bookController) All(context *gin.Context) {
 	var books []entity.Book = c.bookService.All()
-	res := helper.BuildResponse(true, "success", books)
+	res := helper.BuildResponse(true, "Get all books successfully", books)
+	context.JSON(http.StatusOK, res)
+}
+
+func (c *bookController) UserBook(context *gin.Context) {
+	authHeader := context.GetHeader("Authorization")
+	token, err := c.jwtService.ValidateToken(authHeader)
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	claims := token.Claims.(jwt.MapClaims)
+	books := c.bookService.UserBook(fmt.Sprintf("%v", claims["user_id"]))
+	res := helper.BuildResponse(true, "Get user book successfully", books)
 	context.JSON(http.StatusOK, res)
 }
 

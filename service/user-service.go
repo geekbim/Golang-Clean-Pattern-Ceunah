@@ -9,7 +9,7 @@ import (
 	"github.com/mashingan/smapping"
 )
 
-// UserService is a contract ....
+// UserService is a contract about something that this service can do
 type UserService interface {
 	Update(user dto.UserUpdateDTO) entity.User
 	Profile(userID string) entity.User

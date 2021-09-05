@@ -8,12 +8,11 @@ import (
 	"gorm.io/gorm"
 )
 
-// User Repository is a contract what UserRepository can do to db
+// UserRepository is a contract what UserRepository can do to db
 type UserRepository interface {
 	InsertUser(user entity.User) entity.User
 	UpdateUser(user entity.User) entity.User
 	VerifyCredential(email string, password string) interface{}
-	VerifyUser(email string) (tx *gorm.DB)
 	IsDuplicateEmail(email string) (tx *gorm.DB)
 	FindByEmail(email string) entity.User
 	ProfileUser(userID string) entity.User
@@ -34,6 +33,7 @@ func (db *userConnection) InsertUser(user entity.User) entity.User {
 	user.Password = hashAndSalt([]byte(user.Password))
 
 	db.connection.Save(&user)
+	db.connection.Preload("Books").Find(&user)
 
 	return user
 }
@@ -48,6 +48,7 @@ func (db *userConnection) UpdateUser(user entity.User) entity.User {
 	}
 
 	db.connection.Save(&user)
+	db.connection.Preload("Books").Find(&user)
 
 	return user
 }
@@ -55,19 +56,13 @@ func (db *userConnection) UpdateUser(user entity.User) entity.User {
 func (db *userConnection) VerifyCredential(email string, password string) interface{} {
 	var user entity.User
 
-	res := db.connection.Where("email = ? and email_verified is not null", email).Take(&user)
+	res := db.connection.Preload("Books").Where("email = ?", email).Take(&user)
 
 	if res.Error == nil {
 		return user
 	}
 
 	return nil
-}
-
-func (db *userConnection) VerifyUser(email string) (tx *gorm.DB) {
-	var user entity.User
-
-	return db.connection.Where("email = ? and email_verified is not null", email).Take(&user)
 }
 
 func (db *userConnection) IsDuplicateEmail(email string) (tx *gorm.DB) {

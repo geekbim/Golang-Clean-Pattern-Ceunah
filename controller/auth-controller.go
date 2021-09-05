@@ -33,28 +33,28 @@ func NewAuthController(authService service.AuthService, jwtService service.JWTSe
 func (c *authController) Login(context *gin.Context) {
 	var loginDTO dto.LoginDTO
 
+	// validation form request
 	errDTO := context.ShouldBind(&loginDTO)
+
 	if errDTO != nil {
-		response := helper.BuildErrorResponse("Failed to process request", errDTO.Error(), helper.EmptyObj{})
+		response := helper.BuildErrorResponse("User login failed", errDTO.Error(), helper.EmptyObj{})
 		context.AbortWithStatusJSON(http.StatusBadRequest, response)
 		return
 	}
 
+	// login success
 	authResult := c.authService.VerifyCredential(loginDTO.Email, loginDTO.Password)
+
 	if v, ok := authResult.(entity.User); ok {
 		generateToken := c.jwtService.GenerateToken(strconv.FormatUint(v.ID, 10))
 		v.Token = generateToken
-		response := helper.BuildResponse(true, "success", v)
+		response := helper.BuildResponse(true, "User login successfully", v)
 		context.JSON(http.StatusOK, response)
 		return
 	}
 
-	if c.authService.VerifyUser(loginDTO.Email) {
-		response := helper.BuildErrorResponse("Please check your email for verification", "Invalid credential", helper.EmptyObj{})
-		context.AbortWithStatusJSON(http.StatusUnauthorized, response)
-	}
-
-	response := helper.BuildErrorResponse("Please check again your credential", "Invalid credential", helper.EmptyObj{})
+	// login failed
+	response := helper.BuildErrorResponse("User login failed", "Invalid credential", helper.EmptyObj{})
 	context.AbortWithStatusJSON(http.StatusUnauthorized, response)
 }
 
@@ -62,20 +62,21 @@ func (c *authController) Register(context *gin.Context) {
 	var registerDTO dto.RegisterDTO
 
 	errDTO := context.ShouldBind(&registerDTO)
+
 	if errDTO != nil {
-		response := helper.BuildErrorResponse("Failed to process request", errDTO.Error(), helper.EmptyObj{})
+		response := helper.BuildErrorResponse("User register failed", errDTO.Error(), helper.EmptyObj{})
 		context.AbortWithStatusJSON(http.StatusBadRequest, response)
 		return
 	}
 
 	if !c.authService.IsDuplicateEmail(registerDTO.Email) {
-		response := helper.BuildErrorResponse("Failed to process request", "Duplicate email", helper.EmptyObj{})
+		response := helper.BuildErrorResponse("User register failed", "Duplicate email", helper.EmptyObj{})
 		context.JSON(http.StatusConflict, response)
 	} else {
 		createdUser := c.authService.CreateUser(registerDTO)
 		token := c.jwtService.GenerateToken(strconv.FormatUint(createdUser.ID, 10))
 		createdUser.Token = token
-		response := helper.BuildResponse(true, "success", createdUser)
+		response := helper.BuildResponse(true, "User register successfully", createdUser)
 		context.JSON(http.StatusCreated, response)
 	}
 }

@@ -5,13 +5,14 @@ import (
 	"gorm.io/gorm"
 )
 
-// BookRepository is a ...
+// BookRepository is a contract what BookRepository can do to db
 type BookRepository interface {
-	InsertBook(b entity.Book) entity.Book
-	UpdateBook(b entity.Book) entity.Book
-	DeleteBook(b entity.Book)
 	AllBook() []entity.Book
+	UserBook(userID string) []entity.Book
 	FindBookByID(bookID uint64) entity.Book
+	InsertBook(book entity.Book) entity.Book
+	UpdateBook(book entity.Book) entity.Book
+	DeleteBook(book entity.Book)
 }
 
 type bookConnection struct {
@@ -25,32 +26,44 @@ func NewBookRepository(dbConn *gorm.DB) BookRepository {
 	}
 }
 
-func (db *bookConnection) InsertBook(b entity.Book) entity.Book {
-	db.connection.Save(&b)
-	db.connection.Preload("User").Find(&b)
-	return b
+func (db *bookConnection) AllBook() []entity.Book {
+	var books []entity.Book
+
+	db.connection.Preload("User").Find(&books)
+
+	return books
 }
 
-func (db *bookConnection) UpdateBook(b entity.Book) entity.Book {
-	db.connection.Save(&b)
-	db.connection.Preload("User").Find(&b)
-	return b
-}
+func (db *bookConnection) UserBook(userID string) []entity.Book {
+	var books []entity.Book
 
-func (db *bookConnection) DeleteBook(b entity.Book) {
-	db.connection.Delete(&b)
+	db.connection.Preload("User").Where("user_id = ?", userID).Take(&books)
+
+	return books
 }
 
 func (db *bookConnection) FindBookByID(bookID uint64) entity.Book {
 	var book entity.Book
+
 	db.connection.Preload("User").Find(&book, bookID)
 
 	return book
 }
 
-func (db *bookConnection) AllBook() []entity.Book {
-	var books []entity.Book
-	db.connection.Preload("User").Find(&books)
+func (db *bookConnection) InsertBook(book entity.Book) entity.Book {
+	db.connection.Save(&book)
+	db.connection.Preload("User").Find(&book)
 
-	return books
+	return book
+}
+
+func (db *bookConnection) UpdateBook(book entity.Book) entity.Book {
+	db.connection.Save(&book)
+	db.connection.Preload("User").Find(&book)
+
+	return book
+}
+
+func (db *bookConnection) DeleteBook(book entity.Book) {
+	db.connection.Delete(&book)
 }
